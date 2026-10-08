@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_ENDPOINT_URL = 'http://localhost:4566'
+        S3_BUCKET = 'smart-task-frontend'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('frontend') {
+                    sh 'npm ci'
+                }
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                dir('frontend') {
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Deploy to Floci S3') {
+            steps {
+                dir('frontend') {
+                    sh '''
+                    aws s3 sync dist/ s3://${S3_BUCKET}/ \
+                    --delete \
+                    --endpoint-url ${AWS_ENDPOINT_URL}
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Frontend deployment successful!'
+        }
+        failure {
+            echo 'Frontend deployment failed!'
+        }
+    }
+}
