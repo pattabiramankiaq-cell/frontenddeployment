@@ -13,6 +13,6 @@ spec:
     spec:
       containers:
       - name: api-gateway
-        image: harbor.company.com/project/api-gateway:latest
+        image: api-gateway:latest
         ports:
         - containerPort: 5000
